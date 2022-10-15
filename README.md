@@ -22,27 +22,31 @@ This walkthrough will step you through the process of installing, accessing and 
 Pull down the [MariaDB Community Server (with ColumnStore) image](https://hub.docker.com/r/mariadb/columnstore) and create a new container by executing the following command in a terminal window:
 
 ```bash
-$ docker run -d -p 3306:3306 --name mcs_container mariadb/columnstore
+docker run \
+  --name mcs_container \
+  -p 3306:3306 \
+  -d \
+  mariadb/columnstore
 ```
 
 ### 2. Enter the newly created container
 
 ```bash
-$ docker exec -it mcs_container bash
+docker exec -it mcs_container bash
 ```
 
-**Note:** The next several steps involve work within the Docker container, but that is not a hard requirement. The scripts within this repository will also work outside of the container as well.
-
-### 3. Install [git](https://git-scm.com/) using [yum](http://yum.baseurl.org/)
+### 3. Install `git` and `wget`
 
 ```bash
-$ yum install git
+yum install git wget
 ```
 
-### 4. Clone **this** repository
+### 4. Clone this repository
 
 ```bash
-$ git clone https://github.com/mariadb-developers/mariadb-columnstore-quickstart.git
+git clone https://github.com/izzthedude/mariadb-columnstore-quickstart.git
+
+cd mariadb-columnstore-quickstart
 ```
 
 ### 5. Download flight data 
@@ -52,12 +56,22 @@ The sample data used in this example comes from the United States Department of 
 Use the following command to execute a script that will download US domestic flight data between a `start` and `end` year. 
 
 ```bash 
-$ ./get_flight_data.sh
+./get_flight_data.sh
 ```
 
 **Note:** Keep in mind that there are millions of flight records that can take up gigabytes of storage space.
 
-### 6. Create schemas and load data
+### 6. Create mariadb user and grant privileges
+```bash
+# Enter MariaDB CLI
+mariadb
+
+# Commands from here onwards are from within the MariaDB CLI.
+CREATE USER 'app_user'@'%' IDENTIFIED BY 'CHANGE_PASSWORD_HERE';
+GRANT ALL ON travel.* TO 'app_user'@'%';
+```
+
+### 7. Create schemas and load data
 
 This repository includes the following schema:
 
@@ -75,39 +89,12 @@ In this sample, the [create_and_load.sh](create_and_load.sh) script will be used
 Execute the following command to execute a script to create the schema and load data.
 
 ```bash
-$ ./create_and_load.sh
+./create_and_load.sh 127.0.0.1 3306 app_user CHANGE_PASSWORD_HERE
 ```
 
-#### **Additional uses**
-
-The [create_and_load.sh](create_and_load.sh) script can also be used by specifying by database details like `host`, `port`, `user`, and `password`.
-
-./create_and_load.sh [host] [port_number] [user] [password]
-
-```bash
-$ ./create_and_load.sh 127.0.0.1 3306 app_user Password123!
-```
-
-The script can also be used with a MariaDB SkySQL database (by including a path to the [Certificate authority chain file](https://mariadb.com/products/skysql/docs/instructions/connecting/)). For example:
-
-./create_and_load.sh [host] [port_number] [user] [password] [ca_file_path]
-
-```bash 
-$ ./create_and_load.sh analytics-demo.mdb0001390.db.skysql.net 5001 DB00003799 Password123 skysql_chain.pem
-```
 ## Support and Contribution <a name="support-contribution"></a>
 
-Please feel free to submit PR's, issues or requests to this project project directly.
-
-If you have any other questions, comments, or looking for more information on MariaDB please check out:
-
-* [MariaDB Developer Hub](https://mariadb.com/developers)
-* [MariaDB Community Slack](https://r.mariadb.com/join-community-slack)
-
-Or reach out to us diretly via:
-
-* [developers@mariadb.com](mailto:developers@mariadb.com)
-* [MariaDB Twitter](https://twitter.com/mariadb)
+This is a fork strictly for personal/academic use. This fork is **NOT** officially affiliated or endorsed by the original developers. As such, any issues from my changes **MUST NOT** be reported to them.
 
 ## License <a name="license"></a>
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=plastic)](https://opensource.org/licenses/MIT)
